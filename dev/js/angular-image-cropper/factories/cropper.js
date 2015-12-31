@@ -34,6 +34,17 @@
             canvas.height = height;
             context = canvas.getContext('2d');
 
+            context.fillStyle = 'grey';
+            context.beginPath();
+            context.fillStyle = 'grey';
+            context.moveTo(0,0);
+            context.lineTo(width,0);
+            context.lineTo(width,height);
+            context.lineTo(0,height);
+            context.lineTo(0,0);
+            context.stroke();
+            context.fill();
+
             positions = data;
 
             deferred = $q.defer();

@@ -133,7 +133,9 @@
 
             var offset = function(left, top) {
                 if(left || left === 0) {
+                    var left_margin_percentage = 1;
                     if(left < 0) {
+                        left_margin_percentage = 0.5;
                         left = 0;
                     }
 
@@ -141,13 +143,15 @@
                         left = gWidth - 1;
                     }
 
-                    gCanvas[0].style.left = (-left * 100).toFixed(2) + '%';
-                    gLeft = left;
-                    gData.x = Math.round(left * options.width);
+                    gCanvas[0].style.left = (-left * left_margin_percentage * 100).toFixed(2) + '%';
+                    gLeft = left * left_margin_percentage;
+                    gData.x = Math.round(left * left_margin_percentage * options.width);
                 }
 
                 if(top || top === 0) {
+                    var top_margin_percentage = 1;
                     if(top < 0) {
+                        top_margin_percentage = 0.5;
                         top = 0;
                     }
 
@@ -155,9 +159,9 @@
                         top = gHeight - 1;
                     }
 
-                    gCanvas[0].style.top = (-top * 100).toFixed(2) + '%';
-                    gTop = top;
-                    gData.y = Math.round(top * options.height);
+                    gCanvas[0].style.top = (-top * top_margin_percentage * 100).toFixed(2) + '%';
+                    gTop = top * top_margin_percentage;
+                    gData.y = Math.round(top * top_margin_percentage * options.height);
                 }
 
                 return getCroppedImage();
@@ -186,16 +190,11 @@
                 w = gWidth;
                 h = gHeight;
 
-                if(w * factor > 1 && h * factor > 1) {
-                    gWidth *= factor;
-                    gHeight *= factor;
-                    gCanvas[0].style.width = (gWidth * 100).toFixed(2) + '%';
-                    gCanvas[0].style.height = (gHeight * 100).toFixed(2) + '%';
-                    gData.scale *= factor;
-                }else{
-                    fit();
-                    factor = gWidth / w;
-                }
+                gWidth *= factor;
+                gHeight *= factor;
+                gCanvas[0].style.width = (gWidth * 100).toFixed(2) + '%';
+                gCanvas[0].style.height = (gHeight * 100).toFixed(2) + '%';
+                gData.scale *= factor;
 
                 left = (gLeft + 0.5) * factor - 0.5;
                 top = (gTop + 0.5) * factor - 0.5;

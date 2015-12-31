@@ -7,6 +7,8 @@
     var gulp = require('gulp');
     var requireDir = require('require-dir');
     var runSequence = require('run-sequence');
+    require('es6-promise').polyfill();
+
     var $ = {};
 
     /**
