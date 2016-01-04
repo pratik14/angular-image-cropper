@@ -9,7 +9,8 @@
             'zoomStep': 0.1,
             'init': null,
             'showControls': true,
-            'fitOnInit': false
+            'fitOnInit': true,
+            'restrictSize': false
     });
 
 })(angular);

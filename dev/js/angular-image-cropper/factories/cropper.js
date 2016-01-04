@@ -34,9 +34,9 @@
             canvas.height = height;
             context = canvas.getContext('2d');
 
-            context.fillStyle = 'grey';
+            context.fillStyle = 'white';
             context.beginPath();
-            context.fillStyle = 'grey';
+            context.fillStyle = 'white';
             context.moveTo(0,0);
             context.lineTo(width,0);
             context.lineTo(width,height);

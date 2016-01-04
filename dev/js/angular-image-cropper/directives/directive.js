@@ -22,7 +22,8 @@
                 'init': '@',
                 'croppedImage': '=',
                 'showControls': '=',
-                'fitOnInit': '='
+                'fitOnInit': '=',
+                'restrictSize': '='
             },
             'template': ['<div class="frame">',
                 '<div class="imgCropper-window">',
@@ -57,6 +58,7 @@
             options.zoomStep = Number(scope.zoomStep) || defaultConfig.zoomStep;
             options.init = scope.init || defaultConfig.init;
             options.fitOnInit = scope.fitOnInit || defaultConfig.fitOnInit;
+            options.restrictSize = scope.restrictSize || defaultConfig.restrictSize;
 
             var zoomInFactor = 1 + options.zoomStep;
             var zoomOutFactor = 1 / zoomInFactor;
@@ -132,6 +134,10 @@
             };
 
             var offset = function(left, top) {
+                if(left < 0 && options.restrictSize){
+                  return;
+                }
+
                 if(left || left === 0) {
                     var left_margin_percentage = 1;
                     if(left < 0) {
@@ -190,11 +196,17 @@
                 w = gWidth;
                 h = gHeight;
 
-                gWidth *= factor;
-                gHeight *= factor;
-                gCanvas[0].style.width = (gWidth * 100).toFixed(2) + '%';
-                gCanvas[0].style.height = (gHeight * 100).toFixed(2) + '%';
-                gData.scale *= factor;
+                if((w * factor < 1 || h * factor < 1) && options.restrictSize){
+                  fit();
+                  factor = gWidth / w;
+                }
+                else{
+                  gWidth *= factor;
+                  gHeight *= factor;
+                  gCanvas[0].style.width = (gWidth * 100).toFixed(2) + '%';
+                  gCanvas[0].style.height = (gHeight * 100).toFixed(2) + '%';
+                  gData.scale *= factor;
+                }
 
                 left = (gLeft + 0.5) * factor - 0.5;
                 top = (gTop + 0.5) * factor - 0.5;

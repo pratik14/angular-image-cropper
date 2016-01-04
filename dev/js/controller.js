@@ -16,7 +16,8 @@
         vm.imageUrl = 'test.jpg';
         vm.imageResult = '';
         vm.showControls = true;
-        vm.fit = false;
+        vm.fit = true;
+        vm.restrictSize = false;
     }
 
 })(angular);
