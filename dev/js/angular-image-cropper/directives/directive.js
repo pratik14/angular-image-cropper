@@ -23,7 +23,10 @@
                 'croppedImage': '=',
                 'showControls': '=',
                 'fitOnInit': '=',
-                'restrictSize': '='
+                'restrictSize': '=',
+                'currentScale': '@',
+                'minSize': '=',
+                'maxSize': '='
             },
             'template': ['<div class="frame">',
                 '<div class="imgCropper-window">',
@@ -34,6 +37,7 @@
                 '<button ng-click="rotateLeft()" type="button" title="Rotate left"> &lt; </button>',
                 '<button ng-click="zoomOut()" type="button" title="Zoom out"> - </button>',
                 '<button ng-click="fit()" type="button" title="Fit image"> [ ] </button>',
+                '<slider ng-model="currentScale" on-stop-slide="sliderChange(currentScale)" min="minSize" step="0.1" max="maxSize" value="currentScale" tooltip="hide"></slider>',
                 '<button ng-click="zoomIn()" type="button" title="Zoom in"> + </button>',
                 '<button ng-click="rotateRight()" type="button" title="Rotate right"> &gt; </button>',
                 '</div>'].join(''),
@@ -139,6 +143,7 @@
                 }
 
                 if(left || left === 0) {
+                    console.log(left);
                     var left_margin_percentage = 1;
                     if(left < 0) {
                         left_margin_percentage = 0.5;
@@ -151,6 +156,7 @@
 
                     gCanvas[0].style.left = (-left * left_margin_percentage * 100).toFixed(2) + '%';
                     gLeft = left * left_margin_percentage;
+                    console.log(gLeft);
                     gData.x = Math.round(left * left_margin_percentage * options.width);
                 }
 
@@ -189,6 +195,12 @@
 
             var zoom = function(factor) {
                 var h, left, top, w;
+
+                var new_scale = gData.scale * factor;
+                if(new_scale < 0.5 || new_scale > 2){
+                  return;
+                }
+
                 if(factor <= 0 || factor === 1) {
                     return;
                 }
@@ -213,18 +225,65 @@
                 return offset(left, top);
             };
 
+            var sliderChange = function(new_scale, factor, orgWidth, orgHeight) {
+                var prevWidth, relativeRatio, left, top;
+
+                prevWidth = gWidth;
+                relativeRatio = gHeight / gWidth;
+
+                if(gImage[0].naturalWidth > options.width){
+                  if(relativeRatio > 1) {
+                    gWidth = 1;
+                    gHeight = relativeRatio;
+                  }else{
+                    gWidth = 1 / relativeRatio;
+                    gHeight = 1;
+                  }
+                }
+                else{
+                  gWidth = gImage[0].naturalWidth / options.width;
+                  gHeight = gImage[0].naturalHeight / options.height;
+                }
+
+                gWidth *= new_scale;
+                gHeight *= new_scale;
+
+                gCanvas[0].style.width = (gWidth * 100).toFixed(2) + '%';
+                gCanvas[0].style.height = (gHeight * 100).toFixed(2) + '%';
+
+                gData.scale = new_scale;
+
+                console.log('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!');
+                console.log(gLeft);
+                if(factor < 1){
+                  left = (gLeft + 0.5) * factor + 0.2;
+                  top = (gTop + 0.5) * factor + 0.2;
+                }else{
+                  left = (gLeft + 0.5) * factor - 0.5;
+                  top = (gTop + 0.5) * factor - 0.5;
+                }
+                console.log(left);
+                return offset(left, top);
+            }
+
             var fit = function() {
                 var prevWidth, relativeRatio;
 
                 prevWidth = gWidth;
                 relativeRatio = gHeight / gWidth;
 
-                if(relativeRatio > 1) {
+                if(gImage[0].naturalWidth > options.width){
+                  if(relativeRatio > 1) {
                     gWidth = 1;
                     gHeight = relativeRatio;
-                }else{
+                  }else{
                     gWidth = 1 / relativeRatio;
                     gHeight = 1;
+                  }
+                }
+                else{
+                  gWidth = gImage[0].naturalWidth / options.width;
+                  gHeight = gImage[0].naturalHeight / options.height;
                 }
 
                 gCanvas[0].style.width = (gWidth * 100).toFixed(2) + '%';
@@ -305,6 +364,22 @@
             scope.center = function() {
                 center();
             };
+            scope.sliderChange = function(slider_value) {
+                var factor;
+                if(slider_value == 1){
+                    fit();
+                    center();
+                }
+                else{
+                  if(slider_value < 1){
+                    factor = zoomInFactor;
+                  }
+                  else{
+                    factor = zoomOutFactor;
+                  }
+                  sliderChange(slider_value, factor, scope.OrgWidth, scope.OrgHeight);
+                }
+            };
             scope.fit = function() {
                 fit();
                 center();
@@ -331,6 +406,8 @@
                 var thisImage = this;
                 setWrapper();
                 hardwareAccelerate(gImage);
+                scope.OrgHeight = thisImage.naturalHeight;
+                scope.OrgWidth = thisImage.naturalWidth;
                 if (thisImage.naturalWidth < options.width || thisImage.naturalHeight < options.height || options.fitOnInit)
                     fit();
                 center();
