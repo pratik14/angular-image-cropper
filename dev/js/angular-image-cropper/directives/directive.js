@@ -35,9 +35,9 @@
               '</div></div></div>',
               '<div id="controls" ng-if="showControls">',
               '<button ng-click="fit()" type="button" title="Fit image"><i class="icon-actualsize"></i></button>',
-              '<button ng-click="zoomOut()" type="button" title="Zoom out"><i class="icon-minus"></i></button>',
+              //'<button ng-click="zoomOut()" type="button" title="Zoom out"><i class="icon-minus"></i></button>',
               '<slider class="zoomslider-wrap" ng-model="currentScale" on-slide="sliderChange(currentScale)" min="minSize" step="0.1" max="maxSize" value="currentScale" tooltip="hide"></slider>',
-              '<button ng-click="zoomIn()" type="button" title="Zoom in"><i class="icon-plus"></i></button>',
+              //'<button ng-click="zoomIn()" type="button" title="Zoom in"><i class="icon-plus"></i></button>',
               '<button ng-click="rotateRight()" type="button" title="Rotate right"><i class="icon-refresh"></i></button>',
               '</div>'].join(''),
             'link': link
