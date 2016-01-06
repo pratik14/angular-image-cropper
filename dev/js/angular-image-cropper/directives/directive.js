@@ -29,17 +29,17 @@
                 'maxSize': '='
             },
             'template': ['<div class="frame">',
-                '<div class="imgCropper-window">',
-                '<div class="imgCropper-canvas">',
-                '<img ng-src="{{image}}">',
-                '</div></div></div>',
-                '<div id="controls" ng-if="showControls">',
-                '<button ng-click="fit()" type="button" title="Fit image"><i class="icon-actualsize"></i></button>',
-                '<button ng-click="zoomOut()" type="button" title="Zoom out"><i class="icon-minus"></i></button>',
-                '<slider class="zoomslider-wrap" ng-model="currentScale" on-stop-slide="sliderChange(currentScale)" min="minSize" step="0.1" max="maxSize" value="currentScale" tooltip="hide"></slider>',
-                '<button ng-click="zoomIn()" type="button" title="Zoom in"><i class="icon-plus"></i></button>',
-                '<button ng-click="rotateRight()" type="button" title="Rotate right"><i class="icon-refresh"></i></button>',
-                '</div>'].join(''),
+              '<div class="imgCropper-window">',
+              '<div class="imgCropper-canvas">',
+              '<img ng-src="{{image}}">',
+              '</div></div></div>',
+              '<div id="controls" ng-if="showControls">',
+              '<button ng-click="fit()" type="button" title="Fit image"><i class="icon-actualsize"></i></button>',
+              '<button ng-click="zoomOut()" type="button" title="Zoom out"><i class="icon-minus"></i></button>',
+              '<slider class="zoomslider-wrap" ng-model="currentScale" on-slide="sliderChange(currentScale)" min="minSize" step="0.1" max="maxSize" value="currentScale" tooltip="hide"></slider>',
+              '<button ng-click="zoomIn()" type="button" title="Zoom in"><i class="icon-plus"></i></button>',
+              '<button ng-click="rotateRight()" type="button" title="Rotate right"><i class="icon-refresh"></i></button>',
+              '</div>'].join(''),
             'link': link
         };
 
@@ -61,7 +61,7 @@
             options.zoomStep = Number(scope.zoomStep) || defaultConfig.zoomStep;
             options.init = scope.init || defaultConfig.init;
             options.fitOnInit = scope.fitOnInit || defaultConfig.fitOnInit;
-            options.restrictSize = scope.restrictSize || defaultConfig.restrictSize;
+            scope.storedValue = scope.currentScale;
 
             var zoomInFactor = 1 + options.zoomStep;
             var zoomOutFactor = 1 / zoomInFactor;
@@ -136,13 +136,16 @@
                 gCanvas.off(events.stop, unbind);
             };
 
-            var offset = function(left, top) {
-                if(left < 0 && options.restrictSize){
-                  return;
+            var sliderChange = function(value) {
+                if(scope.storedValue != value){
+                    scope.storedValue = value;
+                    var factor = value/gData.scale;
+                    zoom(factor);
+                    getCroppedImage();
                 }
-
+            };
+            var offset = function(left, top) {
                 if(left || left === 0) {
-                    console.log(left);
                     var left_margin_percentage = 1;
                     if(left < 0) {
                         left_margin_percentage = 0.5;
@@ -155,7 +158,6 @@
 
                     gCanvas[0].style.left = (-left * left_margin_percentage * 100).toFixed(2) + '%';
                     gLeft = left * left_margin_percentage;
-                    console.log(gLeft);
                     gData.x = Math.round(left * left_margin_percentage * options.width);
                 }
 
@@ -193,11 +195,16 @@
             };
 
             var zoom = function(factor) {
-                var h, left, top, w;
+                var h, left, top, w, new_scale;
+                new_scale = (gData.scale * factor).toFixed(1);
+                if(new_scale < scope.minSize){
+                    //scope.currentScale = 0.5;
+                    return;
+                }
 
-                var new_scale = gData.scale * factor;
-                if(new_scale < 0.5 || new_scale > 2){
-                  return;
+                if(new_scale > scope.maxSize){
+                    //scope.currentScale = 2;
+                    return;
                 }
 
                 if(factor <= 0 || factor === 1) {
@@ -207,88 +214,55 @@
                 w = gWidth;
                 h = gHeight;
 
-                if((w * factor < 1 || h * factor < 1) && options.restrictSize){
-                  fit();
-                  factor = gWidth / w;
-                }
-                else{
-                  gWidth *= factor;
-                  gHeight *= factor;
-                  gCanvas[0].style.width = (gWidth * 100).toFixed(2) + '%';
-                  gCanvas[0].style.height = (gHeight * 100).toFixed(2) + '%';
-                  gData.scale *= factor;
-                }
+                gWidth *= factor;
+                gHeight *= factor;
+                gCanvas[0].style.width = (gWidth * 100).toFixed(2) + '%';
+                gCanvas[0].style.height = (gHeight * 100).toFixed(2) + '%';
+                gData.scale *= factor;
+                scope.currentScale = gData.scale.toFixed(1);
 
                 left = (gLeft + 0.5) * factor - 0.5;
                 top = (gTop + 0.5) * factor - 0.5;
                 return offset(left, top);
             };
 
-            var sliderChange = function(new_scale, factor, orgWidth, orgHeight) {
-                var prevWidth, relativeRatio, left, top;
-
-                prevWidth = gWidth;
-                relativeRatio = gHeight / gWidth;
-
-                if(gImage[0].naturalWidth > options.width){
-                  if(relativeRatio > 1) {
-                    gWidth = 1;
-                    gHeight = relativeRatio;
-                  }else{
-                    gWidth = 1 / relativeRatio;
-                    gHeight = 1;
-                  }
-                }
-                else{
-                  gWidth = gImage[0].naturalWidth / options.width;
-                  gHeight = gImage[0].naturalHeight / options.height;
-                }
-
-                gWidth *= new_scale;
-                gHeight *= new_scale;
-
-                gCanvas[0].style.width = (gWidth * 100).toFixed(2) + '%';
-                gCanvas[0].style.height = (gHeight * 100).toFixed(2) + '%';
-
-                gData.scale = new_scale;
-
-                console.log('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!');
-                console.log(gLeft);
-                if(factor < 1){
-                  left = (gLeft + 0.5) * factor + 0.2;
-                  top = (gTop + 0.5) * factor + 0.2;
-                }else{
-                  left = (gLeft + 0.5) * factor - 0.5;
-                  top = (gTop + 0.5) * factor - 0.5;
-                }
-                console.log(left);
-                return offset(left, top);
-            };
-
             var fit = function() {
-                var prevWidth, relativeRatio;
+                var prevWidth, relativeRatio, new_scale;
 
                 prevWidth = gWidth;
                 relativeRatio = gHeight / gWidth;
 
-                if(gImage[0].naturalWidth > options.width){
-                  if(relativeRatio > 1) {
-                    gWidth = 1;
-                    gHeight = relativeRatio;
-                  }else{
-                    gWidth = 1 / relativeRatio;
-                    gHeight = 1;
-                  }
+                if(gImage[0].naturalWidth > options.width && gImage[0].naturalHeight > options.height){
+                    if(relativeRatio > 1) {
+                        new_scale = 1/prevWidth;
+                    }
+                    else{
+                        new_scale = 1/(prevWidth * relativeRatio);
+                    }
+                    if(new_scale < scope.minSize){
+                        gWidth = gImage[0].naturalWidth / options.width;
+                        gHeight = gImage[0].naturalHeight / options.height;
+                    }
+                    else{
+                        if(relativeRatio > 1) {
+                            gWidth = 1;
+                            gHeight = relativeRatio;
+                        }else{
+                            gWidth = 1 / relativeRatio;
+                            gHeight = 1;
+                        }
+                    }
                 }
                 else{
-                  gWidth = gImage[0].naturalWidth / options.width;
-                  gHeight = gImage[0].naturalHeight / options.height;
+                    gWidth = gImage[0].naturalWidth / options.width;
+                    gHeight = gImage[0].naturalHeight / options.height;
                 }
 
                 gCanvas[0].style.width = (gWidth * 100).toFixed(2) + '%';
                 gCanvas[0].style.height = (gHeight * 100).toFixed(2) + '%';
 
                 gData.scale *= gWidth / prevWidth;
+                scope.currentScale = gData.scale.toFixed(1);
 
                 return getCroppedImage();
             };
@@ -363,21 +337,8 @@
             scope.center = function() {
                 center();
             };
-            scope.sliderChange = function(slider_value) {
-                var factor;
-                if(slider_value == 1){
-                    fit();
-                    center();
-                }
-                else{
-                  if(slider_value < 1){
-                    factor = zoomInFactor;
-                  }
-                  else{
-                    factor = zoomOutFactor;
-                  }
-                  sliderChange(slider_value, factor, scope.OrgWidth, scope.OrgHeight);
-                }
+            scope.sliderChange = function(value) {
+                sliderChange(value);
             };
             scope.fit = function() {
                 fit();
@@ -385,6 +346,7 @@
             };
             scope.zoomIn = function() {
                 zoom(zoomInFactor);
+                getCroppedImage();
             };
             scope.zoomOut = function() {
                 zoom(zoomOutFactor);
@@ -405,8 +367,6 @@
                 var thisImage = this;
                 setWrapper();
                 hardwareAccelerate(gImage);
-                scope.OrgHeight = thisImage.naturalHeight;
-                scope.OrgWidth = thisImage.naturalWidth;
                 if (thisImage.naturalWidth < options.width || thisImage.naturalHeight < options.height || options.fitOnInit)
                     fit();
                 center();
