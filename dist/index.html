@@ -10,7 +10,6 @@
     <main class="wrapp">
         <section class="cropper">
             <div ng-controller="mainController as vm">
-              --------------->{{vm.imageUrl}}
                 <image-cropper image="{{vm.imageUrl}}"
                     dest-width="400"
                     dest-height="400"
@@ -18,11 +17,12 @@
                     cropped-image="vm.imageResult"
                     fit-on-init="vm.fit"
                     restrict-size='false'
-                    current-scale='1',
+                    current-scale='vm.currentScale',
                     min-size='0.1',
                     max-size='2'
-                ></image-cropper>
-
+                >
+                </image-cropper>
+                --------------->{{vm.currentScale}}
                 <div class="result">
                     <img class="frame" ng-src="{{vm.imageResult}}" width="50%">
                 </div>
