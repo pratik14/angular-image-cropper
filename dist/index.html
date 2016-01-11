@@ -11,15 +11,16 @@
         <section class="cropper">
             <div ng-controller="mainController as vm">
                 <image-cropper image="{{vm.imageUrl}}"
-                    dest-width="400"
-                    dest-height="400"
+                    dest-width="640"
+                    dest-height="480"
                     show-controls="vm.showControls"
                     cropped-image="vm.imageResult"
                     fit-on-init="vm.fit"
                     restrict-size='false'
                     current-scale='vm.currentScale',
                     min-size='0.1',
-                    max-size='2'
+                    max-size='2',
+                    zoom-step='2'
                 >
                 </image-cropper>
                 --------------->{{vm.currentScale}}

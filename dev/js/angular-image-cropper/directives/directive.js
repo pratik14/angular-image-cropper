@@ -36,7 +36,7 @@
               '<div id="controls" ng-if="showControls">',
               //'<button ng-click="fit()" type="button" title="Fit image"><i class="icon-actualsize"></i></button>',
               //'<button ng-click="zoomOut()" type="button" title="Zoom out"><i class="icon-minus">-----</i></button>',
-              '<slider class="zoomslider-wrap" ng-model="currentScale" on-slide="sliderChange(currentScale)" min="minSize" step="0.1" max="maxSize" value="currentScale" tooltip="hide"></slider>',
+              '<slider class="zoomslider-wrap" ng-model="currentScale" on-slide="sliderChange(currentScale)" min="minSize" step="0.01" max="maxSize" value="currentScale" tooltip="hide"></slider>',
               //'<button ng-click="zoomIn()" type="button" title="Zoom in"><i class="icon-plus">++++++++++++++</i></button>',
               //'<button ng-click="rotateRight()" type="button" title="Rotate right"><i class="icon-refresh"></i></button>',
               '</div>'].join(''),
@@ -240,8 +240,8 @@
                         new_scale = 1/(prevWidth * relativeRatio);
                     }
                     if(new_scale < scope.minSize){
-                        gWidth = gImage[0].naturalWidth / options.width;
-                        gHeight = gImage[0].naturalHeight / options.height;
+                        gWidth = prevWidth * scope.minSize;
+                        gHeight *= scope.minSize;
                     }
                     else{
                         if(relativeRatio > 1) {
@@ -256,6 +256,15 @@
                 else{
                     gWidth = gImage[0].naturalWidth / options.width;
                     gHeight = gImage[0].naturalHeight / options.height;
+                    var zoomBy;
+                    if(relativeRatio > 1) {
+                        zoomBy = options.height / gImage[0].naturalHeight;
+                    }
+                    else{
+                        zoomBy = options.width / gImage[0].naturalWidth;
+                    }
+                    gWidth *= zoomBy;
+                    gHeight *= zoomBy;
                 }
 
                 gCanvas[0].style.width = (gWidth * 100).toFixed(2) + '%';
